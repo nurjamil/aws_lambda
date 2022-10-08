@@ -1,0 +1,7 @@
+curl --request POST \
+  --url  \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "first_name": "John",
+  "id": 123456
+}'

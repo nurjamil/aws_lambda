@@ -1,26 +1,24 @@
 package helper
 
 import (
-	"encoding/json"
 	"log"
-	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/francoispqt/gojay"
+	jsoniter "github.com/json-iterator/go"
 )
 
-func ApiResponse(status int, body interface{}) (*events.APIGatewayProxyResponse, error) {
-	resp := events.APIGatewayProxyResponse{Headers: map[string]string{"Content-Type": "application/json"}}
+func ApiResponse(status int, body interface{}) (*events.APIGatewayV2HTTPResponse, error) {
+	resp := events.APIGatewayV2HTTPResponse{Headers: map[string]string{"Content-Type": "application/json"}}
 	resp.StatusCode = status
 
-	stringBody, _ := json.Marshal(body)
-	resp.Body = string(stringBody)
-
-	enc := gojay.BorrowEncoder(&strings.Builder{})
-	defer enc.Release()
-	if err := enc.Encode(body); err != nil {
-		log.Fatal(err)
+	raw, err := jsoniter.Marshal(body)
+	if err != nil {
+		log.Fatalf("%+v", errors.Wrap(err, `fatal`))
 	}
+
+	resp.Body = string(raw)
 
 	return &resp, nil
 }

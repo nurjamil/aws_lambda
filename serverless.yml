@@ -1,0 +1,30 @@
+service: test
+
+provider:
+  name: aws
+  runtime: go1.x
+  region: ca-central-1
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*"
+
+  
+functions:
+  nur:
+    handler: bin/nur
+    events:
+      - httpApi:
+          path: /
+          method: POST
+

@@ -7,9 +7,9 @@ import (
 )
 
 type HandlerItf interface {
-	CreateUser(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse,
+	CreateUser(req events.APIGatewayV2HTTPRequest) (*events.APIGatewayV2HTTPResponse,
 		error)
-	HandlerHelper(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
+	HandlerHelper(req events.APIGatewayV2HTTPRequest) (*events.APIGatewayV2HTTPResponse, error)
 }
 
 type handler struct {

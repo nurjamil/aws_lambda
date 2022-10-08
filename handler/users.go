@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -12,21 +11,21 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/francoispqt/gojay"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
-func (h *handler) CreateUser(req events.APIGatewayProxyRequest) (
-	*events.APIGatewayProxyResponse,
+func (h *handler) CreateUser(req events.APIGatewayV2HTTPRequest) (
+	*events.APIGatewayV2HTTPResponse,
 	error,
 ) {
 	var user model.User
 
 	// decode the request to model
-	dec := gojay.BorrowDecoder(bytes.NewReader([]byte(req.Body)))
-	defer dec.Release()
-	if err := dec.Decode(&user); err != nil {
+	if err := jsoniter.Unmarshal([]byte(req.Body), &user); err != nil {
 		helper.ApiResponse(http.StatusBadRequest, response.ResponseError{
-			ErrorMsg: aws.String(err.Error()),
+			ErrorMsg: aws.String(errors.Wrap(err, `failed to unmarshal`).Error()),
 		})
 	}
 
@@ -41,11 +40,14 @@ func (h *handler) CreateUser(req events.APIGatewayProxyRequest) (
 	return helper.ApiResponse(http.StatusCreated, result)
 }
 
-func (h *handler) HandlerHelper(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	switch req.HTTPMethod {
+func (h *handler) HandlerHelper(req events.APIGatewayV2HTTPRequest) (*events.APIGatewayV2HTTPResponse, error) {
+	log.WithField(`request`, fmt.Sprintf("%+v", req)).Info(`request`)
+
+	switch req.RequestContext.HTTP.Method {
 	case "POST":
 		return h.CreateUser(req)
 	}
 
 	return nil, nil
+
 }
